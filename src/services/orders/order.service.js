@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Order = require("../../models/order");
 const statusCode = require("../../config/statuscode");
+const notification = require("../../helpers/notification")
 require("dotenv").config();
 exports.addOrder = async (req) => {
   let prevData = await Order.find().sort({ _id: -1 }).limit(1);
@@ -49,6 +50,17 @@ exports.addOrder = async (req) => {
 
   const order = new Order(data);
   let result = await order.save();
+
+  let notification = {
+    data,
+    notification: {
+      title:"Navish" ,
+      body: "Test message by navish",
+    },
+  }
+  let token =['qweqweqweewq']
+
+  notification.sendPushNotification({notification,token,isAdmin})
 
   if (!result)
     return {

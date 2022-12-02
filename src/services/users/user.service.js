@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const User = require("../../models/user");
+const Notification = require("../../models/notification");
 const bcrypt = require("bcrypt");
 const jsonwebtoken = require("jsonwebtoken");
 const { responseData } = require("../../helpers/response");
@@ -29,7 +30,7 @@ exports.register = async (req) => {
       password: hash,
       phoneNo: req.body.phoneNo,
       address: req.body.address,
-      isAdmin: req.body.isAdmin
+      isAdmin: req.body.isAdmin,
     });
     let result = await user.save();
     if (!result)
@@ -39,11 +40,17 @@ exports.register = async (req) => {
         message: err.errors.email.message,
       };
 
-    let gentoken ={
-      id:result._id
-    } 
+    let gentoken = {
+      id: result._id,
+    };
 
     let token = this.generateToken(gentoken);
+    let notification = new Notification({
+      userId: result.id,
+      fcmToken: "Token",
+    });
+    await notification.save();
+
     let data = {
       id: result._id,
       name: result.name,
@@ -83,7 +90,7 @@ exports.changePassword = async (req) => {
   } else {
     let hash = await bcrypt.hash(req.body.newPassword, 10);
     const result = await User.findByIdAndUpdate(existingUser._id, {
-      $set: { password: hash},
+      $set: { password: hash },
     });
     return {
       statusCode: statusCode.SUCCESS,
@@ -115,6 +122,13 @@ exports.login = async (req) => {
     };
   } else {
     let token = this.generateToken(result);
+
+    let notification = new Notification({
+      userId: result.id,
+      fcmToken: "Token",
+    });
+    await notification.save();
+
     let data = {
       name: result.name,
       address: result.address,
