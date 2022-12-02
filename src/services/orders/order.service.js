@@ -51,16 +51,17 @@ exports.addOrder = async (req) => {
   const order = new Order(data);
   let result = await order.save();
 
-  let notification = {
-    data,
-    notification: {
-      title:"Navish" ,
-      body: "Test message by navish",
-    },
-  }
-  let token =['qweqweqweewq']
+  // Notification Data 
+  // let notification = {
+  //   data,
+  //   notification: {
+  //     title:"Navish" ,
+  //     body: "Test message by navish",
+  //   },
+  // }
+  // let token =['qweqweqweewq']
 
-  notification.sendPushNotification({notification,token,isAdmin})
+  // notification.sendPushNotification({notification,token,isAdmin})
 
   if (!result)
     return {
