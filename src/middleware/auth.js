@@ -35,7 +35,7 @@ function verifyToken(req, res, next) {
         res,
         statusCode: statusCode.UNAUTHORIZED,
         success: 0,
-        message: "Your session has expired",
+        message: "No User Found",
       });
     delete users.password;
     req.user = users;

@@ -11,10 +11,25 @@ exports.register = async (req, res) => {
         res,
         statusCode: statusCode.BADREQUEST,
         success: 0,
-        message: "Error in creating user",
+        message: "Error in Registeration",
       });
     responseData({ res, ...result });
   } catch (error) {
+    if (error.name === "ValidationError") {
+      let errors = {};
+
+      Object.keys(error.errors).forEach((key) => {
+        errors[key] = error.errors[key].message;
+      });
+
+      responseData({
+        res,
+        statusCode: statusCode.BADREQUEST,
+        success: 0,
+        error: errors,
+      });
+    }
+
     responseData({
       res,
       statusCode: statusCode.SERVER_ERROR,
@@ -46,23 +61,22 @@ exports.login = async (req, res) => {
 };
 
 exports.changePassword = async (req, res) => {
-	try {
-		const result = await Service.UserService.changePassword(req);
-		if (!result)
-		  return responseData({
-			res,
-			statusCode: statusCode.BADREQUEST,
-			success: 0,
-			message: "Error in Changing Password",
-		  });
-		responseData({ res, ...result });
-	  } catch (error) {
-		responseData({
-		  res,
-		  statusCode: statusCode.SERVER_ERROR,
-		  success: 0,
-		  message: error.message,
-		});
-	  }
-
+  try {
+    const result = await Service.UserService.changePassword(req);
+    if (!result)
+      return responseData({
+        res,
+        statusCode: statusCode.BADREQUEST,
+        success: 0,
+        message: "Error in Changing Password",
+      });
+    responseData({ res, ...result });
+  } catch (error) {
+    responseData({
+      res,
+      statusCode: statusCode.SERVER_ERROR,
+      success: 0,
+      message: error.message,
+    });
+  }
 };

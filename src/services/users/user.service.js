@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+
 const User = require("../../models/user");
 const Notification = require("../../models/notification");
 const bcrypt = require("bcrypt");
@@ -7,6 +8,13 @@ const { responseData } = require("../../helpers/response");
 const statusCode = require("../../config/statuscode");
 
 exports.register = async (req) => {
+  let { phoneNo, password, name, address } = req.body;
+  if (!phoneNo || !password || !name || !address)
+    return {
+      statusCode: statusCode.BADREQUEST,
+      success: 0,
+      message: "Invalid request",
+    };
   // User Exist or not
   // const checkUser = await User.findOne({ phoneNo: req.body.phoneNo });
   // if (checkUser)
@@ -16,40 +24,38 @@ exports.register = async (req) => {
   //     message: "User Already Exist",
   //   };
   // console.log(checkUser, "checkUsercheckUser");
+  debugger;
   let hash = await bcrypt.hash(req.body.password, 10);
   if (!hash) {
     return {
       statusCode: statusCode.SERVER_ERROR,
       success: 0,
-      message: "Error in user registration",
-      error: err,
+      message: "Registeration Error",
     };
   } else {
     const user = new User({
-      name: req.body.name,
+      name,
       password: hash,
-      phoneNo: req.body.phoneNo,
-      address: req.body.address,
-      isAdmin: req.body.isAdmin,
+      phoneNo,
+      address,
+      isAdmin: req.body?.isAdmin ? req.body.isAdmin : false,
     });
     let result = await user.save();
     if (!result)
       return {
         statusCode: statusCode.SERVER_ERROR,
         success: 0,
-        message: err.errors.email.message,
+        message: "Registeration Error",
       };
 
-    let gentoken = {
+    let token = this.generateToken({
       id: result._id,
-    };
-
-    let token = this.generateToken(gentoken);
-    let notification = new Notification({
-      userId: result.id,
-      fcmToken: "Token",
     });
-    await notification.save();
+    // let notification = new Notification({
+    //   userId: result.id,
+    //   fcmToken: "Token",
+    // });
+    // await notification.save();
 
     let data = {
       id: result._id,
@@ -69,13 +75,15 @@ exports.register = async (req) => {
 };
 
 exports.changePassword = async (req) => {
-  const existingUser = await User.findOne({ phoneNo: req.user.phoneNo });
-  if (!existingUser)
+  let { password, newPassword } = req.body;
+  if (!password || !newPassword)
     return {
-      statusCode: statusCode.SERVER_ERROR,
-      success: 1,
-      message: "No User Found",
+      statusCode: statusCode.BADREQUEST,
+      success: 0,
+      message: "Invalid request",
     };
+
+  const existingUser = await User.findOne({ phoneNo: req.user.phoneNo });
 
   const passwordCheck = await bcrypt.compare(
     req.body.password,
