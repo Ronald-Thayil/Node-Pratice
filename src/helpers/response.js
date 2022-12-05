@@ -7,3 +7,23 @@ exports.responseData = ({ res, statusCode,success,message, data, error }) => {
 	};
 	return res.status(statusCode).send(resultObj);
 };
+
+exports.responseMessage ={
+	REGISTER_ERROR :"Error in Registeration",
+	INVALID_INPUT : "Invalid request",
+	USER_EXIST:"User Already Exist",
+	REGISTER_SUCCESS : "User registered successfully",
+	LOGIN_SUCCESS: "User login successfully",
+	PASSWORD_NOT_MATCH : "Password Not Matched",
+	PASSWORD_CHANGE_SUCCESS : "Password Change Successfully",
+	NO_USER :"No User Found",
+	INVALID_FILE_TYPE:"File Type Didn't match",
+	ORDER_PLACED:"Order Placed successfully",
+	ORDER_FAILURE : "Error in creating order",
+	LOGIN_ERROR : "Error in logging",
+	ERROR_CHANGEPASSWORD : "Error in Changing Password",
+	NOTIFICATION_ERROR:"Error in Sending Notification",
+	NOTIFICATION_SUCCESS : "Notification Send Successfully",
+	SESSION_EXPIRED : "Your session has expired",
+	SOMETHING_WRONG : "Something went wrong"
+}

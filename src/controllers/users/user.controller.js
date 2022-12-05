@@ -1,36 +1,20 @@
 const statusCode = require("../../config/statuscode");
-const { responseData } = require("../../helpers/response");
+const { responseData, responseMessage } = require("../../helpers/response");
 const Service = require("../../services");
 
 exports.register = async (req, res) => {
   try {
-    console.log("Hello");
     const result = await Service.UserService.register(req);
     if (!result)
       return responseData({
         res,
         statusCode: statusCode.BADREQUEST,
         success: 0,
-        message: "Error in Registeration",
+        message: responseMessage.REGISTER_ERROR,
       });
-    responseData({ res, ...result });
+    return responseData({ res, ...result });
   } catch (error) {
-    if (error.name === "ValidationError") {
-      let errors = {};
-
-      Object.keys(error.errors).forEach((key) => {
-        errors[key] = error.errors[key].message;
-      });
-
-      responseData({
-        res,
-        statusCode: statusCode.BADREQUEST,
-        success: 0,
-        error: errors,
-      });
-    }
-
-    responseData({
+    return responseData({
       res,
       statusCode: statusCode.SERVER_ERROR,
       success: 0,
@@ -47,11 +31,11 @@ exports.login = async (req, res) => {
         res,
         statusCode: statusCode.BADREQUEST,
         success: 0,
-        message: "Error in logging",
+        message: responseMessage.LOGIN_ERROR,
       });
-    responseData({ res, ...result });
+   return responseData({ res, ...result });
   } catch (error) {
-    responseData({
+    return responseData({
       res,
       statusCode: statusCode.SERVER_ERROR,
       success: 0,
@@ -68,11 +52,11 @@ exports.changePassword = async (req, res) => {
         res,
         statusCode: statusCode.BADREQUEST,
         success: 0,
-        message: "Error in Changing Password",
+        message: responseMessage.ERROR_CHANGEPASSWORD,
       });
-    responseData({ res, ...result });
+      return responseData({ res, ...result });
   } catch (error) {
-    responseData({
+    return responseData({
       res,
       statusCode: statusCode.SERVER_ERROR,
       success: 0,

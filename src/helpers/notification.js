@@ -3,7 +3,7 @@ var fcm = require("fcm-notification");
 var serviceAccount = require("../config/secret.json");
 const certPath = admin.credential.cert(serviceAccount);
 var FCM = new fcm(certPath);
-const { responseData } = require("../helpers/response");
+const { responseMessage } = require("../helpers/response");
 const statusCode = require("../config/statuscode");
 
 exports.sendPushNotification = (notificationData) => {
@@ -13,8 +13,8 @@ exports.sendPushNotification = (notificationData) => {
     let message = {
       data,
       notification: {
-        title:"Navish" ,
-        body: "Test message by navish",
+        title,
+        body,
       },
     };
     if (fcm_token.length > 1) {
@@ -23,13 +23,13 @@ exports.sendPushNotification = (notificationData) => {
           return {
             statusCode: statusCode.SERVER_ERROR,
             success: 0,
-            message: "Error in Sending Notification",
+            message: responseMessage.NOTIFICATION_ERROR,
           };
         } else {
           return {
             statusCode: statusCode.SUCCESS,
             success: 1,
-            message: "Notification Send Successfully",
+            message: responseMessage.NOTIFICATION_SUCCESS,
           };
         }
       });
@@ -40,13 +40,13 @@ exports.sendPushNotification = (notificationData) => {
           return {
             statusCode: statusCode.SERVER_ERROR,
             success: 0,
-            message: "Error in Sending Notification",
+            message: responseMessage.NOTIFICATION_ERROR,
           };
         } else {
           return {
             statusCode: statusCode.SUCCESS,
             success: 1,
-            message: "Notification Send Successfully",
+            message: responseMessage.NOTIFICATION_SUCCESS,
           };
         }
       });

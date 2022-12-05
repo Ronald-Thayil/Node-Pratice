@@ -1,13 +1,13 @@
 const jsonwebtoken = require("jsonwebtoken");
 const UserData = require("../models/user");
 const statusCode = require("../config/statusCode");
-const { responseData } = require("../helpers/response");
+const { responseData, responseMessage } = require("../helpers/response");
 
 function verifyToken(req, res, next) {
-  const secret = "jack";
+  const secret = process.env.SECRET || "jack";
   let token = req.headers["x-access-token"] || req.headers.authorization;
   console.log(token, "123");
-
+  debugger;
   if (token) {
     token = token.startsWith("Bearer ") ? token.slice(7, token.length) : token;
   } else {
@@ -15,7 +15,7 @@ function verifyToken(req, res, next) {
       res,
       statusCode: statusCode.UNAUTHORIZED,
       success: 0,
-      message: "Your session has expired",
+      message: responseMessage.SESSION_EXPIRED,
     });
   }
   jsonwebtoken.verify(token, secret, async (err, decoded) => {
@@ -24,19 +24,21 @@ function verifyToken(req, res, next) {
         res,
         statusCode: statusCode.UNAUTHORIZED,
         success: 0,
-        message: "Your session has expired",
+        message: responseMessage.SESSION_EXPIRED,
       });
     }
 
-    const users = await UserData.findOne({ id: decoded.id });
+    const users = await UserData.findOne({ _id: decoded.id });
 
     if (!users)
       return responseData({
         res,
         statusCode: statusCode.UNAUTHORIZED,
         success: 0,
-        message: "No User Found",
+        message: responseMessage.NO_USER,
       });
+    debugger
+    console.log(users,'users');
     delete users.password;
     req.user = users;
     next();

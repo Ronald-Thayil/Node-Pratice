@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 const orderSchema = new mongoose.Schema({
-  userId: [{
+  userId: {
     type:mongoose.Schema.Types.ObjectId,
     ref:'user'
-  }],
+  },
   orderId:Number,
   orderStatus: String,
   medImage: { type: Array, default: [] },

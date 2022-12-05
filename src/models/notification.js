@@ -7,6 +7,6 @@ const notificationSchema = new mongoose.Schema(
     },
     fcmToken: String,
   },
-  { versionKey: false }
+  { versionKey: false, timestamps: true }
 );
 module.exports = mongoose.model("notification", notificationSchema);

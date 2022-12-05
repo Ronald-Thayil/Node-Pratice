@@ -38,10 +38,7 @@ app.use(bodyParser.urlencoded({ extended: false }))
  
 // parse application/json
 app.use(bodyParser.json())
-const username=process.env.USERNAME
-const password=process.env.PASSWORD
-const dbName=process.env.DB
-const cluster=process.env.CLUSTER
+
 
 
 mongoose.connect(process.env.Databaseconnection,

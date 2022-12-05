@@ -1,10 +1,8 @@
-const mongoose = require("mongoose");
-
 const User = require("../../models/user");
 const Notification = require("../../models/notification");
 const bcrypt = require("bcrypt");
 const jsonwebtoken = require("jsonwebtoken");
-const { responseData } = require("../../helpers/response");
+const { responseMessage } = require("../../helpers/response");
 const statusCode = require("../../config/statuscode");
 
 exports.register = async (req) => {
@@ -13,7 +11,7 @@ exports.register = async (req) => {
     return {
       statusCode: statusCode.BADREQUEST,
       success: 0,
-      message: "Invalid request",
+      message: responseMessage.INVALID_INPUT,
     };
   // User Exist or not
   // const checkUser = await User.findOne({ phoneNo: req.body.phoneNo });
@@ -21,16 +19,16 @@ exports.register = async (req) => {
   //   return {
   //     statusCode: statusCode.SERVER_ERROR,
   //     success: 0,
-  //     message: "User Already Exist",
+  //     message: responseMessage.USER_EXIST,
   //   };
   // console.log(checkUser, "checkUsercheckUser");
-  debugger;
+
   let hash = await bcrypt.hash(req.body.password, 10);
   if (!hash) {
     return {
       statusCode: statusCode.SERVER_ERROR,
       success: 0,
-      message: "Registeration Error",
+      message: responseMessage.REGISTER_ERROR,
     };
   } else {
     const user = new User({
@@ -45,17 +43,17 @@ exports.register = async (req) => {
       return {
         statusCode: statusCode.SERVER_ERROR,
         success: 0,
-        message: "Registeration Error",
+        message: responseMessage.REGISTER_ERROR,
       };
 
     let token = this.generateToken({
       id: result._id,
     });
-    // let notification = new Notification({
-    //   userId: result.id,
-    //   fcmToken: "Token",
-    // });
-    // await notification.save();
+    let notification = new Notification({
+      userId: result._id,
+      fcmToken: "Token",
+    });
+    await notification.save();
 
     let data = {
       id: result._id,
@@ -68,7 +66,7 @@ exports.register = async (req) => {
     return {
       statusCode: statusCode.SUCCESS,
       success: 1,
-      message: "User registered successfully",
+      message: responseMessage.REGISTER_SUCCESS,
       data,
     };
   }
@@ -80,7 +78,7 @@ exports.changePassword = async (req) => {
     return {
       statusCode: statusCode.BADREQUEST,
       success: 0,
-      message: "Invalid request",
+      message: responseMessage.INVALID_INPUT,
     };
 
   const existingUser = await User.findOne({ phoneNo: req.user.phoneNo });
@@ -92,8 +90,8 @@ exports.changePassword = async (req) => {
   if (!passwordCheck) {
     return {
       statusCode: statusCode.SERVER_ERROR,
-      success: 1,
-      message: "Password Not Matched",
+      success: 0,
+      message: responseMessage.PASSWORD_NOT_MATCH,
     };
   } else {
     let hash = await bcrypt.hash(req.body.newPassword, 10);
@@ -103,7 +101,7 @@ exports.changePassword = async (req) => {
     return {
       statusCode: statusCode.SUCCESS,
       success: 1,
-      message: "Password Change Successfully",
+      message: responseMessage.PASSWORD_CHANGE_SUCCESS,
     };
   }
 };
@@ -113,11 +111,10 @@ exports.login = async (req) => {
   if (!result)
     return {
       statusCode: statusCode.SERVER_ERROR,
-      success: 1,
-      message: "No User Found",
+      success: 0,
+      message: responseMessage.NO_USER,
     };
 
-  // console.log(req.password, result.password,'pass');
   const passwordCheck = await bcrypt.compare(
     req.body.password,
     result.password
@@ -125,17 +122,18 @@ exports.login = async (req) => {
   if (!passwordCheck) {
     return {
       statusCode: statusCode.SERVER_ERROR,
-      success: 1,
-      message: "Password Not Matched",
+      success: 0,
+      message: responseMessage.PASSWORD_NOT_MATCH,
     };
   } else {
     let token = this.generateToken(result);
 
     let notification = new Notification({
-      userId: result.id,
+      userId: result._id,
       fcmToken: "Token",
     });
     await notification.save();
+
 
     let data = {
       name: result.name,
@@ -146,7 +144,7 @@ exports.login = async (req) => {
     return {
       statusCode: statusCode.SUCCESS,
       success: 1,
-      message: "User login",
+      message: responseMessage.LOGIN_SUCCESS,
       data,
     };
   }
@@ -156,10 +154,7 @@ exports.generateToken = (user) => {
   const secret = process.env.SECRET || "jack";
   const token = jsonwebtoken.sign(
     {
-      id: user._id,
-      name: user.name,
-      address: user.address,
-      phoneNo: user.phoneNo,
+      id: user.id,
     },
     secret,
     {
