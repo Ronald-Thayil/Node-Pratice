@@ -7,9 +7,9 @@ exports.addOrder = async (req) => {
   let prevData = await Order.find().sort({ _id: -1 }).limit(1);
   let orderId = prevData[0]?.orderId ? prevData[0]?.orderId + 1 : 1001;
 
-  let { orderStatus, medecine } = req.body;
+  let { orderStatus, medicines } = req.body;
 
-  if (!orderStatus || !(req?.files?.image || medecine))
+  if (!orderStatus || !(req?.files?.images || medicines))
     return {
       statusCode: statusCode.BADREQUEST,
       success: 0,
@@ -17,19 +17,19 @@ exports.addOrder = async (req) => {
     };
 
   let medImage = [];
-  debugger;
+
   let data = {
     userId: req.user._id,
     orderStatus: orderStatus,
     orderId,
-    medecine,
+    medicines: JSON.parse(medicines),
   };
-  if (req?.files?.image) {
+  if (req?.files?.images) {
     let filetype = ["image/png", "image/jpeg"];
-    const { image } = req?.files;
-    if (image.length) {
-      for (let index = 0; index < image.length; index++) {
-        if (!filetype.includes(image[index].mimetype)) {
+    const { images } = req?.files;
+    if (images.length) {
+      for (let index = 0; index < images.length; index++) {
+        if (!filetype.includes(images[index].mimetype)) {
           return {
             statusCode: statusCode.SERVER_ERROR,
             success: 0,
@@ -37,13 +37,14 @@ exports.addOrder = async (req) => {
           };
         }
 
-        let filename = `${orderId}-` + Date.now() + image[index].name;
-        image[index].mv(process.env.filePath + filename);
-
+        let filename = `${orderId}-` + Date.now() + images[index].name;
+        debugger;
+        images[index].mv(process.env.filePath + filename);
+        debugger;
         medImage.push(filename);
       }
     } else {
-      if (!filetype.includes(image.mimetype)) {
+      if (!filetype.includes(images.mimetype)) {
         return {
           statusCode: statusCode.SERVER_ERROR,
           success: 0,
@@ -51,8 +52,8 @@ exports.addOrder = async (req) => {
         };
       }
 
-      let filename = `${orderId}-` + Date.now() + image.name;
-      image.mv(process.env.filePath + image.name);
+      let filename = `${orderId}-` + Date.now() + images.name;
+      images.mv(process.env.filePath + images.name);
 
       medImage.push(filename);
     }
@@ -64,22 +65,22 @@ exports.addOrder = async (req) => {
   let result = await order.save();
 
   // Notification Data
-  let notification = {
-    data,
-    notification: {
-      title: "Navish",
-      body: "Test message by navish",
-    },
-  };
-  let deviceToken = await Notification.find({ userId: result.userId });
-  let token = deviceToken.map((data) => data.fcmToken);
-  console.log(token);
+  // let notification = {
+  //   data,
+  //   notification: {
+  //     title: "Navish",
+  //     body: "Test message by navish",
+  //   },
+  // };
+  // // let deviceToken = await Notification.find({ userId: result.userId });
+  // // let token = deviceToken.map((data) => data.fcmToken);
+  // // console.log(token);
 
-  sendNotification.sendPushNotification({
-    notification,
-    token,
-    isAdmin: false,
-  });
+  // sendNotification.sendPushNotification({
+  //   notification,
+  //   token,
+  //   isAdmin: false,
+  // });
 
   if (!result)
     return {
@@ -98,7 +99,7 @@ exports.addOrder = async (req) => {
 
 exports.getOrderData = async (req) => {
   let { isAdmin, _id } = req.user;
-  debugger;
+
   if (isAdmin) {
     const result = await Order.find();
     console.log(result, "result");
@@ -117,9 +118,9 @@ exports.getOrderData = async (req) => {
       data: result,
     };
   } else {
-    const result = await Order.find({ userId:_id });
+    const result = await Order.find({ userId: _id });
     console.log(result, "result");
-    debugger;
+
     if (!result)
       return {
         statusCode: statusCode.SERVER_ERROR,

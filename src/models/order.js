@@ -1,12 +1,15 @@
 const mongoose = require("mongoose");
-const orderSchema = new mongoose.Schema({
-  userId: {
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'user'
+const orderSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+    },
+    orderId: Number,
+    orderStatus: String,
+    medImage: { type: Array, default: [] },
+    medicines: { type: Array, default: [] },
   },
-  orderId:Number,
-  orderStatus: String,
-  medImage: { type: Array, default: [] },
-  medecine: { type: Array, default: [] },
-},{ versionKey: false });
+  { versionKey: false, timestamps: true }
+);
 module.exports = mongoose.model("order", orderSchema);
