@@ -3,6 +3,21 @@ const Notification = require("../../models/notification");
 const statusCode = require("../../config/statuscode");
 const sendNotification = require("../../helpers/notification");
 const { responseMessage } = require("../../helpers/response");
+
+function sortData(orderData) {
+  let newarray = orderData.map((item) => {
+    let data = {
+      orderId: item.orderId,
+      orderStatus: item.orderStatus,
+      medImage: item.medImage,
+      medicines: item.medicines,
+      createdAt: item.createdAt,
+    };
+    return data;
+  });
+  return newarray;
+}
+
 exports.addOrder = async (req) => {
   let prevData = await Order.find().sort({ _id: -1 }).limit(1);
   let orderId = prevData[0]?.orderId ? prevData[0]?.orderId + 1 : 1001;
@@ -22,8 +37,8 @@ exports.addOrder = async (req) => {
     userId: req.user._id,
     orderStatus: orderStatus,
     orderId,
-    medicines: JSON.parse(medicines),
   };
+  data.medicines = medicines ? JSON.parse(medicines) : [];
   if (req?.files?.images) {
     let filetype = ["image/png", "image/jpeg"];
     const { images } = req?.files;
@@ -110,12 +125,12 @@ exports.getOrderData = async (req) => {
         success: 0,
         message: responseMessage.ORDER_FAILURE,
       };
-
+    let orderData = await sortData(result);
     return {
       statusCode: statusCode.SUCCESS,
       success: 1,
       message: responseMessage.ORDER_PLACED,
-      data: result,
+      data: orderData,
     };
   } else {
     const result = await Order.find({ userId: _id });
@@ -128,11 +143,12 @@ exports.getOrderData = async (req) => {
         message: responseMessage.ORDER_FAILURE,
       };
 
+    let orderData = await sortData(result);
     return {
       statusCode: statusCode.SUCCESS,
       success: 1,
       message: responseMessage.ORDER_PLACED,
-      data: result,
+      data: orderData,
     };
   }
 };

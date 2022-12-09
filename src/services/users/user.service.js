@@ -56,7 +56,6 @@ exports.register = async (req) => {
     await notification.save();
 
     let data = {
-      id: result._id,
       name: result.name,
       address: result.address,
       phoneNo: result.phoneNo,
@@ -110,7 +109,7 @@ exports.login = async (req) => {
   const result = await User.findOne({ phoneNo: req.body.phoneNo });
   if (!result)
     return {
-      statusCode: statusCode.SERVER_ERROR,
+      statusCode: statusCode.NOTFOUND,
       success: 0,
       message: responseMessage.NO_USER,
     };
@@ -121,7 +120,7 @@ exports.login = async (req) => {
   );
   if (!passwordCheck) {
     return {
-      statusCode: statusCode.SERVER_ERROR,
+      statusCode: statusCode.UNAUTHORIZED,
       success: 0,
       message: responseMessage.PASSWORD_NOT_MATCH,
     };
@@ -134,11 +133,11 @@ exports.login = async (req) => {
     });
     await notification.save();
 
-
     let data = {
       name: result.name,
       address: result.address,
       phoneNo: result.phoneNo,
+      isAdmin: result.isAdmin,
       token,
     };
     return {
