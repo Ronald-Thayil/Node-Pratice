@@ -3,7 +3,7 @@ const Notification = require("../../models/notification");
 const statusCode = require("../../config/statuscode");
 const sendNotification = require("../../helpers/notification");
 const { responseMessage } = require("../../helpers/response");
-
+const filePath = /Users/ips-142/Desktop/P/Metro-Node/src/upload/
 function sortData(orderData) {
   let newarray = orderData.map((item) => {
     let data = {
@@ -54,7 +54,7 @@ exports.addOrder = async (req) => {
 
         let filename = `${orderId}-` + Date.now() + images[index].name;
         debugger;
-        images[index].mv(process.env.filePath + filename);
+        images[index].mv(filePath + filename);
         debugger;
         medImage.push(filename);
       }
@@ -68,7 +68,7 @@ exports.addOrder = async (req) => {
       }
 
       let filename = `${orderId}-` + Date.now() + images.name;
-      images.mv(process.env.filePath + images.name);
+      images.mv(filePath + images.name);
 
       medImage.push(filename);
     }
