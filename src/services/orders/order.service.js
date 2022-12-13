@@ -3,7 +3,6 @@ const Notification = require("../../models/notification");
 const statusCode = require("../../config/statuscode");
 const sendNotification = require("../../helpers/notification");
 const { responseMessage } = require("../../helpers/response");
-const filePath = /Users/ips-142/Desktop/P/Metro-Node/src/upload/
 function sortData(orderData) {
   let newarray = orderData.map((item) => {
     let data = {
@@ -54,7 +53,7 @@ exports.addOrder = async (req) => {
 
         let filename = `${orderId}-` + Date.now() + images[index].name;
         debugger;
-        images[index].mv(filePath + filename);
+        images[index].mv(process.env.filePath + filename);
         debugger;
         medImage.push(filename);
       }
@@ -68,7 +67,7 @@ exports.addOrder = async (req) => {
       }
 
       let filename = `${orderId}-` + Date.now() + images.name;
-      images.mv(filePath + images.name);
+      images.mv(process.env.filePath + images.name);
 
       medImage.push(filename);
     }
@@ -157,18 +156,18 @@ exports.getOrderDetail = async (req) => {
   let { orderId } = req.body;
 
   const result = await Order.find({ orderId });
-
-  if (!result)
+  debugger;
+  if (!result || !result.length)
     return {
-      statusCode: statusCode.SERVER_ERROR,
+      statusCode: statusCode.NOTFOUND,
       success: 0,
-      message: responseMessage.ORDER_FAILURE,
+      message: responseMessage.ORDER_NOT_FOUND,
     };
 
   return {
     statusCode: statusCode.SUCCESS,
     success: 1,
-    message: responseMessage.ORDER_PLACED,
+    message: responseMessage.ORDER_DETAIL,
     data: result,
   };
 };
