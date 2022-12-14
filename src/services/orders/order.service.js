@@ -3,7 +3,9 @@ const Notification = require("../../models/notification");
 const statusCode = require("../../config/statuscode");
 const sendNotification = require("../../helpers/notification");
 const { responseMessage } = require("../../helpers/response");
-function sortData(orderData) {
+const User = require("../../models/user");
+
+const sortData = (orderData) => {
   let newarray = orderData.map((item) => {
     let data = {
       orderId: item.orderId,
@@ -15,7 +17,22 @@ function sortData(orderData) {
     return data;
   });
   return newarray;
-}
+};
+
+const sendAdminNotification = async (orderId) => {
+  let adminUserID = await User.find({ isAdmin: true }, "_id");
+  debugger;
+  let deviceToken = await Notification.find({ userId: { $in: adminUserID } });
+  debugger;
+  let fcm_token = deviceToken.map((data) => data.fcmToken);
+  console.log(fcm_token);
+  debugger;
+
+  sendNotification.sendPushNotification({
+    fcm_token,
+    data: { orderId },
+  });
+};
 
 exports.addOrder = async (req) => {
   let prevData = await Order.find().sort({ _id: -1 }).limit(1);
@@ -78,24 +95,6 @@ exports.addOrder = async (req) => {
   const order = new Order(data);
   let result = await order.save();
 
-  // Notification Data
-  // let notification = {
-  //   data,
-  //   notification: {
-  //     title: "Navish",
-  //     body: "Test message by navish",
-  //   },
-  // };
-  // // let deviceToken = await Notification.find({ userId: result.userId });
-  // // let token = deviceToken.map((data) => data.fcmToken);
-  // // console.log(token);
-
-  // sendNotification.sendPushNotification({
-  //   notification,
-  //   token,
-  //   isAdmin: false,
-  // });
-
   if (!result)
     return {
       statusCode: statusCode.SERVER_ERROR,
@@ -103,6 +102,8 @@ exports.addOrder = async (req) => {
       message: responseMessage.ORDER_FAILURE,
     };
 
+  // Sending Notification to Admin
+  await sendAdminNotification(result.orderId);
   return {
     statusCode: statusCode.SUCCESS,
     success: 1,

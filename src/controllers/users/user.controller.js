@@ -43,7 +43,26 @@ exports.login = async (req, res) => {
     });
   }
 };
-
+exports.logout = async (req, res) => {
+  try {
+    const result = await Service.UserService.logout(req);
+    if (!result)
+      return responseData({
+        res,
+        statusCode: statusCode.BADREQUEST,
+        success: 0,
+        message: responseMessage.LOGOUT_ERROR,
+      });
+   return responseData({ res, ...result });
+  } catch (error) {
+    return responseData({
+      res,
+      statusCode: statusCode.SERVER_ERROR,
+      success: 0,
+      message: error.message,
+    });
+  }
+};
 exports.changePassword = async (req, res) => {
   try {
     const result = await Service.UserService.changePassword(req);

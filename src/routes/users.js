@@ -5,6 +5,7 @@ const verifyToken = require("../middleware/auth");
 
 router.post("/register", Controller.UserController.register);
 router.post("/login", Controller.UserController.login);
+router.post("/logout", Controller.UserController.logout);
 router.post(
   "/changepassword",
   verifyToken,
