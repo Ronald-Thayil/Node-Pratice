@@ -3,7 +3,7 @@ const Notification = require("../../models/notification");
 const statusCode = require("../../config/statuscode");
 const sendNotification = require("../../helpers/notification");
 const { responseMessage } = require("../../helpers/response");
-const filePath = /Users/ips-142/Desktop/P/Metro-Node/src/upload/
+
 function sortData(orderData) {
   let newarray = orderData.map((item) => {
     let data = {
@@ -17,6 +17,14 @@ function sortData(orderData) {
   });
   return newarray;
 }
+
+const fetchDateTime = (createdAt) => {
+  let DateValue = new Date(createdAt)
+    .toLocaleString(undefined, { timeZone: "Asia/Kolkata" })
+    .split(",");
+
+  return { date: DateValue[0], time: DateValue[1] };
+};
 
 exports.addOrder = async (req) => {
   let prevData = await Order.find().sort({ _id: -1 }).limit(1);
@@ -54,7 +62,7 @@ exports.addOrder = async (req) => {
 
         let filename = `${orderId}-` + Date.now() + images[index].name;
         debugger;
-        images[index].mv(filePath + filename);
+        images[index].mv(process.env.filePath + filename);
         debugger;
         medImage.push(filename);
       }
@@ -68,7 +76,7 @@ exports.addOrder = async (req) => {
       }
 
       let filename = `${orderId}-` + Date.now() + images.name;
-      images.mv(filePath + images.name);
+      images.mv(process.env.filePath + images.name);
 
       medImage.push(filename);
     }
@@ -164,12 +172,22 @@ exports.getOrderDetail = async (req) => {
       success: 0,
       message: responseMessage.ORDER_FAILURE,
     };
+  let { date, time } = fetchDateTime(result[0].createdAt);
+
+  let data = {
+    orderId: result[0].orderId,
+    orderStatus: result[0].orderStatus,
+    medImage: result[0].medImage,
+    medicines: result[0].medicines,
+    date,
+    time,
+  };
 
   return {
     statusCode: statusCode.SUCCESS,
     success: 1,
     message: responseMessage.ORDER_PLACED,
-    data: result,
+    data,
   };
 };
 
