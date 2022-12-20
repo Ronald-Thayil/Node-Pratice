@@ -3,8 +3,9 @@ const Notification = require("../../models/notification");
 const statusCode = require("../../config/statuscode");
 const sendNotification = require("../../helpers/notification");
 const { responseMessage } = require("../../helpers/response");
+const User = require("../../models/user");
 
-function sortData(orderData) {
+const sortData = (orderData) => {
   let newarray = orderData.map((item) => {
     let data = {
       orderId: item.orderId,
@@ -16,7 +17,21 @@ function sortData(orderData) {
     return data;
   });
   return newarray;
-}
+};
+
+const sendAdminNotification = async (orderId) => {
+  let adminUserID = await User.find({ isAdmin: true }, "_id");
+
+  let deviceToken = await Notification.find({ userId: { $in: adminUserID } });
+
+  let fcm_token = deviceToken.map((data) => data.fcmToken);
+  console.log(fcm_token);
+
+  sendNotification.sendPushNotification({
+    fcm_token,
+    data: { orderId },
+  });
+};
 
 const fetchDateTime = (createdAt) => {
   let DateValue = new Date(createdAt)
@@ -61,9 +76,9 @@ exports.addOrder = async (req) => {
         }
 
         let filename = `${orderId}-` + Date.now() + images[index].name;
-        debugger;
+
         images[index].mv(process.env.filePath + filename);
-        debugger;
+
         medImage.push(filename);
       }
     } else {
@@ -87,24 +102,6 @@ exports.addOrder = async (req) => {
   const order = new Order(data);
   let result = await order.save();
 
-  // Notification Data
-  // let notification = {
-  //   data,
-  //   notification: {
-  //     title: "Navish",
-  //     body: "Test message by navish",
-  //   },
-  // };
-  // // let deviceToken = await Notification.find({ userId: result.userId });
-  // // let token = deviceToken.map((data) => data.fcmToken);
-  // // console.log(token);
-
-  // sendNotification.sendPushNotification({
-  //   notification,
-  //   token,
-  //   isAdmin: false,
-  // });
-
   if (!result)
     return {
       statusCode: statusCode.SERVER_ERROR,
@@ -112,6 +109,8 @@ exports.addOrder = async (req) => {
       message: responseMessage.ORDER_FAILURE,
     };
 
+  // Sending Notification to Admin
+  await sendAdminNotification(result.orderId);
   return {
     statusCode: statusCode.SUCCESS,
     success: 1,
@@ -166,11 +165,11 @@ exports.getOrderDetail = async (req) => {
 
   const result = await Order.find({ orderId });
 
-  if (!result)
+  if (!result || !result.length)
     return {
-      statusCode: statusCode.SERVER_ERROR,
+      statusCode: statusCode.NOTFOUND,
       success: 0,
-      message: responseMessage.ORDER_FAILURE,
+      message: responseMessage.ORDER_NOT_FOUND,
     };
   let { date, time } = fetchDateTime(result[0].createdAt);
 

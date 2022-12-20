@@ -2,19 +2,19 @@ var admin = require("firebase-admin");
 var fcm = require("fcm-notification");
 var serviceAccount = require("../config/secret.json");
 const certPath = admin.credential.cert(serviceAccount);
-var FCM = new fcm(certPath);
+const FCM = new fcm(certPath);
 const { responseMessage } = require("../helpers/response");
 const statusCode = require("../config/statuscode");
 
 exports.sendPushNotification = (notificationData) => {
   try {
-    let { fcm_token, title, body, data } = notificationData;
+    let { fcm_token, data } = notificationData;
 
     let message = {
-      data,
+      data, //This is only optional, you can send any data
       notification: {
-        title,
-        body,
+        title: `New Order Placed`,
+        body: `Order ID : ${data.orderId}`,
       },
     };
     if (fcm_token.length > 1) {

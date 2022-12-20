@@ -6,7 +6,7 @@ const { responseMessage } = require("../../helpers/response");
 const statusCode = require("../../config/statuscode");
 
 exports.register = async (req) => {
-  let { phoneNo, password, name, address } = req.body;
+  let { phoneNo, password, name, address, fcmToken } = req.body;
   if (!phoneNo || !password || !name || !address)
     return {
       statusCode: statusCode.BADREQUEST,
@@ -49,11 +49,11 @@ exports.register = async (req) => {
     let token = this.generateToken({
       id: result._id,
     });
-    let notification = new Notification({
-      userId: result._id,
-      fcmToken: "Token",
-    });
-    await notification.save();
+    fcmToken &&
+      new Notification({
+        userId: result._id,
+        fcmToken,
+      }).save();
 
     let data = {
       name: result.name,
@@ -106,7 +106,8 @@ exports.changePassword = async (req) => {
 };
 
 exports.login = async (req) => {
-  const result = await User.findOne({ phoneNo: req.body.phoneNo });
+  const { phoneNo, password, fcmToken } = req.body;
+  const result = await User.findOne({ phoneNo });
   if (!result)
     return {
       statusCode: statusCode.NOTFOUND,
@@ -114,10 +115,7 @@ exports.login = async (req) => {
       message: responseMessage.NO_USER,
     };
 
-  const passwordCheck = await bcrypt.compare(
-    req.body.password,
-    result.password
-  );
+  const passwordCheck = await bcrypt.compare(password, result.password);
   if (!passwordCheck) {
     return {
       statusCode: statusCode.UNAUTHORIZED,
@@ -127,11 +125,11 @@ exports.login = async (req) => {
   } else {
     let token = this.generateToken(result);
 
-    let notification = new Notification({
-      userId: result._id,
-      fcmToken: "Token",
-    });
-    await notification.save();
+    fcmToken &&
+      new Notification({
+        userId: result._id,
+        fcmToken,
+      }).save();
 
     let data = {
       name: result.name,
@@ -147,6 +145,27 @@ exports.login = async (req) => {
       data,
     };
   }
+};
+exports.logout = async (req) => {
+  const { fcmToken } = req.body;
+  debugger;
+
+  let result = await Notification.deleteMany({ fcmToken: fcmToken });
+  console.log(result, "resultresult");
+  debugger;
+  if (!result.deletedCount)
+    return {
+      statusCode: statusCode.NOTFOUND,
+      success: 0,
+      message: responseMessage.NO_FCM_TOKEN,
+    };
+
+  return {
+    statusCode: statusCode.SUCCESS,
+    success: 1,
+    message: responseMessage.LOGOUT_SUCCESS,
+    result,
+  };
 };
 
 exports.generateToken = (user) => {
