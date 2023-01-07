@@ -205,7 +205,7 @@ exports.orderUpdate = async (req) => {
   return {
     statusCode: statusCode.SUCCESS,
     success: 1,
-    message: responseMessage.ORDER_PLACED,
+    message: responseMessage.UPDATE_ORDER,
     data: result,
   };
 };

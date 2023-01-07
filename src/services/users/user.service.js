@@ -105,6 +105,40 @@ exports.changePassword = async (req) => {
   }
 };
 
+exports.updateprofile = async (req) => {
+  debugger;
+  const { name, address } = req.body;
+
+  if (!name && !address) {
+    return {
+      statusCode: statusCode.BADREQUEST,
+      success: 0,
+      message: responseMessage.INVALID_INPUT,
+    };
+  }
+  let param = {};
+  name && (param.name = name);
+  address && (param.address = address);
+
+  const result = await User.findByIdAndUpdate(req.user._id, {
+    $set: param,
+  });
+  debugger;
+  const data = await User.findById(req.user._id);
+  let sortparam = {
+    name: data.name,
+    phoneNo: data.phoneNo,
+    address: data.address,
+    isAdmin: data.isAdmin,
+  };
+  return {
+    statusCode: statusCode.SUCCESS,
+    success: 1,
+    message: responseMessage.UPDATE_PROFILE,
+    data:sortparam,
+  };
+};
+
 exports.login = async (req) => {
   const { phoneNo, password, fcmToken } = req.body;
   const result = await User.findOne({ phoneNo });
